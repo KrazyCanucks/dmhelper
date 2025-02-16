@@ -1,0 +1,25 @@
+whisper --model large-v2 --language en --condition_on_previous_text False --compression_ratio_threshold 1.8 AUDIO_FILE_1.ogg
+
+whisperx --model large-v2 --language en  AUDIO_FILE_1.ogg
+
+
+
+python -m venv env
+env\scripts\activate
+python.exe -m pip install --upgrade pip
+pip install whisperx
+pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126
+
+# Put cnn 
+D:\projects\whisperx\env\Scripts
+
+
+
+whisper --model large-v2 --language en --condition_on_previous_text False --compression_ratio_threshold 1.8 c:\Recordings\working\1-draglock_0.flac 
+whisper --model large-v2 --language en --condition_on_previous_text False --compression_ratio_threshold 1.8 c:\Recordings\working\Part01\2-shredneck_0.flac 
+whisper --model large-v2 --language en --condition_on_previous_text False --compression_ratio_threshold 1.8 c:\Recordings\working\3-krazycanucks_0.flac 
+whisper --model large-v2 --language en --condition_on_previous_text False --compression_ratio_threshold 1.8 c:\Recordings\working\4-warchylde73_0.flac 
+whisper --model large-v2 --language en --condition_on_previous_text False --compression_ratio_threshold 1.8 c:\Recordings\working\5-theflash8six_0.flac 
+whisper --model large-v2 --language en --condition_on_previous_text False --compression_ratio_threshold 1.8 c:\Recordings\working\6-cmnderthrawn_0.flac 
+whisper --model large-v2 --language en --condition_on_previous_text False --compression_ratio_threshold 1.8 c:\Recordings\working\Part01\7-cidiantoby_0.flac
+whisper --model large-v2 --language en --condition_on_previous_text False --compression_ratio_threshold 1.8 c:\Recordings\working\Part01\8-icemann05_0.flac 
