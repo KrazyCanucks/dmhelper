@@ -44,6 +44,7 @@ def run_transcription(audio_filename, audio_folder):
     # Set the Model
     # -----------------------------------------  
     # Transcribe with original whisper (batched)
+    print("############### Set the Model ###############")        
     model = whisperx.load_model("large-v2", device, compute_type=compute_type, language=language_code)
 
     # save model to local path (optional)
@@ -55,26 +56,25 @@ def run_transcription(audio_filename, audio_folder):
     # -----------------------------------------
     # Transcribe the Audio File
     # -----------------------------------------
+    print("############### Start Transcription ###############")     
     audio = whisperx.load_audio(audio_file)
     result = model.transcribe(audio, batch_size=batch_size)
-    print(result["segments"]) # before alignment
+    # print(result["segments"]) # before alignment
 
     # delete model if low on GPU resources
     if torch.cuda.memory_allocated(device) > 0.8 * torch.cuda.max_memory_reserved(device):
         gc.collect()
         torch.cuda.empty_cache()
     del model
-
+    print("############### End Transcription ###############")        
 
 
     # -----------------------------------------
     # Align whisper output
     # -----------------------------------------
+    print("############### Aligninment Started ###############")    
     model_a, metadata = whisperx.load_align_model(language_code=result["language"], device=device)
     aligned_result = whisperx.align(result["segments"], model_a, metadata, audio, device, return_char_alignments=False)
-
-    print("############### after alignment ###############")    
-    print(aligned_result["segments"]) # after alignment
     
     # delete model if low on GPU resources
     if torch.cuda.memory_reserved(device) > 0.8 * torch.cuda.max_memory_reserved(device):
@@ -82,12 +82,17 @@ def run_transcription(audio_filename, audio_folder):
         torch.cuda.empty_cache()
     del model_a
 
+    # print(aligned_result["segments"]) # after alignment
+    print("############### Alignment Finished ###############")    
+
 
 
 
     # -----------------------------------------
     # Assign speaker labels
     # -----------------------------------------
+    print("############### Start Adding Speaker ID ###############")
+
     # Instantiate the diarization model with the Hugging Face token for authentication
     diarize_model = whisperx.DiarizationPipeline(use_auth_token = token_hf , device=device)
         
@@ -96,76 +101,43 @@ def run_transcription(audio_filename, audio_folder):
    
     # add min/max number of speakers if known
     # diarize_model(audio, min_speakers=min_speakers, max_speakers=max_speakers)
-    
+
+    print("############### diarized segments ###############")
+    # print(diarize_segments)    
+
+
     # assign speaker labels to each word in the transcription
     diarize_result = whisperx.assign_word_speakers(diarize_segments,aligned_result) 
 
-    print("############### with speaker ID ###############")
-    print(diarize_segments)
+    print("############### diarized results ###############")
     print(diarize_result["segments"]) # segments are now assigned speaker IDs
 
+    print("############### End Adding Speaker ID ###############")
 
 
 
     # -----------------------------------------
     # Save results into file
     # -----------------------------------------
-    diarize_result["language"] = result["language"]
+    print("############### Start Saving Transcription to File ###############")    
+    diarize_result["language"] = diarize_result["language"]
     tsv_writer = get_writer("tsv", audio_folder)
     tsv_writer(diarize_result, audio_file, {})
+    print("############### End Saving Transcription to File ###############")        
  
-    #    vtt_writer(
-    #        diarize_result,
-    #        audio_file,
-    #        {"max_line_width": None, "max_line_count": None, "highlight_words": False},
-    #    )
-  
-    # # Save as an TXT file
-    # srt_writer = get_writer("txt", "captions/")
-    # srt_writer(result, audio_file, {})
-
-    # # Save as an SRT file
-    # srt_writer = get_writer("srt", "captions/")
-    # srt_writer(
-    #     result,
-    #     audio_file,
-    #     {"max_line_width": None, "max_line_count": None, "highlight_words": False},
-    # )
-
-    # # Save as a VTT file
-    # vtt_writer = get_writer("vtt", "captions/")
-    # vtt_writer(
-    #     result,
-    #     audio_file,
-    #     {"max_line_width": None, "max_line_count": None, "highlight_words": False},
-    # )
-
-    # # Save as a TSV file
-    # tsv_writer = get_writer("tsv", "captions/")
-    # tsv_writer(result, audio_file, {})
-
-    # # Save as a JSON file
-    # json_writer = get_writer("json", "captions/")
-    # json_writer(result, audio_file, {})
-
-
-
-
-
-
-
-
+ 
 
 # -----------------------------------------
 # Start Process - Calls Run Process
 # -----------------------------------------
 def start_transcription_process(audio_folder):
+    print("############### Start transcription_process ###############")   
     flac_files = glob.glob(os.path.join(audio_folder, "*.flac"))
     for audio_filename in flac_files:
         p = Process(target=run_transcription, args=(audio_filename, audio_folder))
         p.start()
         p.join()
-
+    print("############### End transcription_process ###############")   
 
 
 
@@ -173,7 +145,9 @@ def start_transcription_process(audio_folder):
 # Main Process - Calls Start Process
 # -----------------------------------------
 if __name__ == '__main__':
+    print("############### Start Main ###############") 
     parser = argparse.ArgumentParser(description='Transcribe audio files in a folder.')
     parser.add_argument('audio_folder', type=str, help='The folder containing the audio files to transcribe')
     args = parser.parse_args()
     start_transcription_process(args.audio_folder)
+    print("############### End Main ###############")     
